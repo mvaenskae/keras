@@ -140,7 +140,12 @@ class BatchNormalization(Layer):
         needs_broadcasting = (sorted(reduction_axes) != list(range(ndim))[:-1])
 
         def normalize_inference():
-            if needs_broadcasting:
+            if K._BACKEND == 'tensorflow':
+                from ..backend import tensorflow_backend as tf_backend
+                tf_nchw_support = tf_backend._has_nchw_support()
+            else:
+                tf_nchw_support = False
+            if needs_broadcasting and not tf_nchw_support:
                 # In this case we must explicitly broadcast all parameters.
                 broadcast_moving_mean = K.reshape(self.moving_mean,
                                                   broadcast_shape)
