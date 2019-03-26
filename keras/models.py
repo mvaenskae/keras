@@ -67,8 +67,8 @@ def _clone_functional_model(model, input_tensors=None):
             # Cache newly created input layer.
             newly_created_input_layer = input_tensor._keras_history[0]
             layer_map[layer] = newly_created_input_layer
-        for original_input_layer, cloned_input_layer in zip(model._input_layers, input_layers):
-            layer_map[original_input_layer] = cloned_input_layer
+        for _original, _cloned in zip(model._input_layers, input_layers):
+            layer_map[_original] = _cloned
     else:
         # Make sure that all input tensors come from a Keras layer.
         # If tensor comes from an input layer: cache the input layer.
@@ -137,9 +137,12 @@ def _clone_functional_model(model, input_tensors=None):
                             kwargs['mask'] = computed_mask
                     output_tensors = to_list(
                         layer(computed_tensor, **kwargs))
-                    output_masks = to_list(
-                        layer.compute_mask(computed_tensor,
-                                           computed_mask))
+                    if layer.supports_masking:
+                        output_masks = to_list(
+                            layer.compute_mask(computed_tensor,
+                                               computed_mask))
+                    else:
+                        output_masks = [None] * len(output_tensors)
                     computed_tensors = [computed_tensor]
                     computed_masks = [computed_mask]
                 else:
@@ -150,9 +153,12 @@ def _clone_functional_model(model, input_tensors=None):
                             kwargs['mask'] = computed_masks
                     output_tensors = to_list(
                         layer(computed_tensors, **kwargs))
-                    output_masks = to_list(
-                        layer.compute_mask(computed_tensors,
-                                           computed_masks))
+                    if layer.supports_masking:
+                        output_masks = to_list(
+                            layer.compute_mask(computed_tensors,
+                                               computed_masks))
+                    else:
+                        output_masks = [None] * len(output_tensors)
                 # Update tensor_map.
                 for x, y, mask in zip(reference_output_tensors,
                                       output_tensors,

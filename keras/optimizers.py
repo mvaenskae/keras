@@ -18,6 +18,17 @@ if K.backend() == 'tensorflow':
 
 
 def clip_norm(g, c, n):
+    """Clip the gradient `g` if the L2 norm `n` exceeds `c`.
+
+    # Arguments
+        g: Tensor, the gradient tensor
+        c: float >= 0. Gradients will be clipped
+            when their L2 norm exceeds this value.
+        n: Tensor, actual norm of `g`.
+
+    # Returns
+        Tensor, the gradient clipped if required.
+    """
     if c <= 0:  # if clipnorm == 0 no need to add ops to the graph
         return g
 
@@ -213,9 +224,6 @@ class RMSprop(Optimizer):
     at their default values
     (except the learning rate, which can be freely tuned).
 
-    This optimizer is usually a good choice for recurrent
-    neural networks.
-
     # Arguments
         lr: float >= 0. Learning rate.
         rho: float >= 0.
@@ -223,7 +231,8 @@ class RMSprop(Optimizer):
         decay: float >= 0. Learning rate decay over each update.
 
     # References
-        - [rmsprop: Divide the gradient by a running average of its recent magnitude](http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
+        - [rmsprop: Divide the gradient by a running average of its recent magnitude
+           ](http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
     """
 
     def __init__(self, lr=0.001, rho=0.9, epsilon=None, decay=0.,
@@ -279,7 +288,7 @@ class Adagrad(Optimizer):
     Adagrad is an optimizer with parameter-specific learning rates,
     which are adapted relative to how frequently a parameter gets
     updated during training. The more updates a parameter receives,
-    the smaller the updates.
+    the smaller the learning rate.
 
     It is recommended to leave the parameters of this optimizer
     at their default values.
@@ -290,7 +299,8 @@ class Adagrad(Optimizer):
         decay: float >= 0. Learning rate decay over each update.
 
     # References
-        - [Adaptive Subgradient Methods for Online Learning and Stochastic Optimization](http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf)
+        - [Adaptive Subgradient Methods for Online Learning and Stochastic
+           Optimization](http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf)
     """
 
     def __init__(self, lr=0.01, epsilon=None, decay=0., **kwargs):
@@ -360,7 +370,8 @@ class Adadelta(Optimizer):
         decay: float >= 0. Initial learning rate decay.
 
     # References
-        - [Adadelta - an adaptive learning rate method](http://arxiv.org/abs/1212.5701)
+        - [Adadelta - an adaptive learning rate method](
+           https://arxiv.org/abs/1212.5701)
     """
 
     def __init__(self, lr=1.0, rho=0.95, epsilon=None, decay=0.,
@@ -435,8 +446,10 @@ class Adam(Optimizer):
             Beyond".
 
     # References
-        - [Adam - A Method for Stochastic Optimization](http://arxiv.org/abs/1412.6980v8)
-        - [On the Convergence of Adam and Beyond](https://openreview.net/forum?id=ryQu7f-RZ)
+        - [Adam - A Method for Stochastic Optimization](
+           https://arxiv.org/abs/1412.6980v8)
+        - [On the Convergence of Adam and Beyond](
+           https://openreview.net/forum?id=ryQu7f-RZ)
     """
 
     def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999,
@@ -516,12 +529,14 @@ class Adamax(Optimizer):
 
     # Arguments
         lr: float >= 0. Learning rate.
-        beta_1/beta_2: floats, 0 < beta < 1. Generally close to 1.
+        beta_1: float, 0 < beta < 1. Generally close to 1.
+        beta_2: float, 0 < beta < 1. Generally close to 1.
         epsilon: float >= 0. Fuzz factor. If `None`, defaults to `K.epsilon()`.
         decay: float >= 0. Learning rate decay over each update.
 
     # References
-        - [Adam - A Method for Stochastic Optimization](http://arxiv.org/abs/1412.6980v8)
+        - [Adam - A Method for Stochastic Optimization](
+           https://arxiv.org/abs/1412.6980v8)
     """
 
     def __init__(self, lr=0.002, beta_1=0.9, beta_2=0.999,
@@ -589,7 +604,7 @@ class Nadam(Optimizer):
     """Nesterov Adam optimizer.
 
     Much like Adam is essentially RMSprop with momentum,
-    Nadam is Adam RMSprop with Nesterov momentum.
+    Nadam is RMSprop with Nesterov momentum.
 
     Default parameters follow those provided in the paper.
     It is recommended to leave the parameters of this optimizer
@@ -597,12 +612,15 @@ class Nadam(Optimizer):
 
     # Arguments
         lr: float >= 0. Learning rate.
-        beta_1/beta_2: floats, 0 < beta < 1. Generally close to 1.
+        beta_1: float, 0 < beta < 1. Generally close to 1.
+        beta_2: float, 0 < beta < 1. Generally close to 1.
         epsilon: float >= 0. Fuzz factor. If `None`, defaults to `K.epsilon()`.
+        schedule_decay: float, 0 < schedule_decay < 1.
 
     # References
         - [Nadam report](http://cs229.stanford.edu/proj2015/054_report.pdf)
-        - [On the importance of initialization and momentum in deep learning](http://www.cs.toronto.edu/~fritz/absps/momentum.pdf)
+        - [On the importance of initialization and momentum in deep learning](
+           http://www.cs.toronto.edu/~fritz/absps/momentum.pdf)
     """
 
     def __init__(self, lr=0.002, beta_1=0.9, beta_2=0.999,
@@ -627,10 +645,10 @@ class Nadam(Optimizer):
         t = K.cast(self.iterations, K.floatx()) + 1
 
         # Due to the recommendations in [2], i.e. warming momentum schedule
-        momentum_cache_t = self.beta_1 * (
-            1. - 0.5 * (K.pow(K.cast_to_floatx(0.96), t * self.schedule_decay)))
-        momentum_cache_t_1 = self.beta_1 * (
-            1. - 0.5 * (K.pow(K.cast_to_floatx(0.96), (t + 1) * self.schedule_decay)))
+        momentum_cache_t = self.beta_1 * (1. - 0.5 * (
+            K.pow(K.cast_to_floatx(0.96), t * self.schedule_decay)))
+        momentum_cache_t_1 = self.beta_1 * (1. - 0.5 * (
+            K.pow(K.cast_to_floatx(0.96), (t + 1) * self.schedule_decay)))
         m_schedule_new = self.m_schedule * momentum_cache_t
         m_schedule_next = self.m_schedule * momentum_cache_t * momentum_cache_t_1
         self.updates.append((self.m_schedule, m_schedule_new))
@@ -648,7 +666,8 @@ class Nadam(Optimizer):
             m_t_prime = m_t / (1. - m_schedule_next)
             v_t = self.beta_2 * v + (1. - self.beta_2) * K.square(g)
             v_t_prime = v_t / (1. - K.pow(self.beta_2, t))
-            m_t_bar = (1. - momentum_cache_t) * g_prime + momentum_cache_t_1 * m_t_prime
+            m_t_bar = (1. - momentum_cache_t) * g_prime + (
+                momentum_cache_t_1 * m_t_prime)
 
             self.updates.append(K.update(m, m_t))
             self.updates.append(K.update(v, v_t))
@@ -675,6 +694,9 @@ class Nadam(Optimizer):
 
 class TFOptimizer(Optimizer):
     """Wrapper class for native TensorFlow optimizers.
+
+    # Arguments
+        optimizer: Selected optimizer
     """
 
     def __init__(self, optimizer):
@@ -684,7 +706,7 @@ class TFOptimizer(Optimizer):
 
     @interfaces.legacy_get_updates_support
     def get_updates(self, loss, params):
-        grads = self.optimizer.compute_gradients(loss, params)
+        grads = self.optimizer.compute_gradients(loss, var_list=params)
         self.updates = [K.update_add(self.iterations, 1)]
         opt_update = self.optimizer.apply_gradients(
             grads, global_step=self.iterations)
