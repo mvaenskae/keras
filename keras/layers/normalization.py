@@ -142,7 +142,7 @@ class BatchNormalization(Layer):
         needs_broadcasting = (sorted(reduction_axes) != list(range(ndim))[:-1])
 
         def normalize_inference():
-            if K._BACKEND == 'tensorflow':
+            if K.backend() == 'tensorflow':
                 from ..backend import tensorflow_backend as tf_backend
                 tf_nchw_support = tf_backend._has_nchw_support()
             else:
