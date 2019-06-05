@@ -443,7 +443,10 @@ def weighted_masked_objective(fn):
             score_array = K.mean(score_array,
                                  axis=list(range(weight_ndim, ndim)))
             score_array *= weights
-            score_array /= K.mean(K.cast(K.not_equal(weights, 0), K.floatx()))
+            divisor_safe = K.switch(K.equal(divisor, 0), K.constant(1), K.mean(divisor))
+            score_array /= divisor_safe
+            normalizer = K.switch(K.equal(divisor, 0), K.constant(0), K.constant(1))
+            score_array *= normalizer
         return K.mean(score_array)
     return weighted
 
